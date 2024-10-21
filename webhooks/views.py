@@ -63,6 +63,13 @@ def webhook_receiver(request):
             case_sex = json_data.get('aBWXXTLYXGc', None)
             case_age_days = json_data.get('XIZZPCv7ljB', None)        
             case_phone_number = json_data.get('LAJ1gDQ6Mrz', None)
+            # Formatted contact
+            case_phone_number_formatted = ""
+            if len(case_phone_number) == 12:
+                case_phone_number_formatted = "(260)" + case_phone_number[3:]
+            elif len(case_phone_number) == 10:
+                case_phone_number_formatted = "(260)" + case_phone_number[1:]
+                
             case_loinc_code = json_data.get('slkkXAIqOnm', None)
             case_disease_code = json_data.get('iSIhKjnlMkv', None)
             case_rapid_test_done = json_data.get('nxNEeKHN6qP', None)
@@ -107,7 +114,7 @@ def webhook_receiver(request):
                         'country':'ZMB',
                         'nmc_diag_name':nmc_diag_name,
                         'lab_filler_phone_number': lab_filler_phone_number,
-                        'case_phone_number':case_phone_number,
+                        'case_phone_number':case_phone_number_formatted,
                         'case_disease_code':case_disease_code,
                         'case_loinc_code':case_loinc_code,
                         'case_loinc_name':case_loinc_name,

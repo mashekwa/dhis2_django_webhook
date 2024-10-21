@@ -20,3 +20,7 @@ python manage.py createsuperuser
 
 # Resources
 https://medium.com/@runitranjankumar/django-docker-compose-celery-redis-postgresql-4c6a41e72973
+
+
+# TEST CONNECTION TO KAFKA
+telnet 10.51.73.144 9092

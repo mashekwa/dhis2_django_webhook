@@ -14,9 +14,8 @@ from pathlib import Path
 import os
 # import environ
 
-#Initialise environment variables
-# env = environ.Env()
-# environ.Env.read_env()
+SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -104,6 +103,24 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Kafka Configurations
+KAFKA_CONFIG = {
+    "bootstrap.servers": os.getenv("KAFKA_BOOTSTRAP_SERVERS"),
+    "security.protocol": os.getenv("KAFKA_SECURITY_PROTOCOL"),
+    "sasl.mechanism": os.getenv("KAFKA_SASL_MECHANISM"),
+    "sasl.username": os.getenv("KAFKA_USERNAME"),
+    "sasl.password": os.getenv("KAFKA_PASSWORD"),
+    "group.id": os.getenv("KAFKA_GROUP_ID"),
+    "debug":os.getenv("KAFKA_DEBUG"),
+    "log_level": 7  # Enable detailed logging
+}
+
+
+# DHIS2
+DHIS_URL=os.getenv("DHIS_URL"),
+DHIS_USER=os.getenv("DHIS_USER"),
+DHIS_PASS=os.getenv("DHIS_PASS"),
 
 
 # Password validation
