@@ -20,6 +20,8 @@ def transform_request_to_hl7(event_id):
         # Ensure both event_status and hmis_code are not null
         if webhook_event.hmis_code:
             # Mapping the HL7 Message
+
+
             message = (
                 f'MSH|^~\\&|ZMeIDSR|^{webhook_event.hmis_code}^L|DISA*LAB|{webhook_event.lab_code}|'
                 f'{webhook_event.lab_specimen_sent_date}||{webhook_event.message_type}|{webhook_event.message_uuid}|'
@@ -41,10 +43,11 @@ def transform_request_to_hl7(event_id):
             Hl7LabRequest.objects.create(
                 webhook=webhook_event,
                 nmc_order_id=webhook_event.nmc_order_id,
-                message_body=message
+                message_body=message,
+                event_status=webhook_event.event_status
             )
 
-            logger.info(f"HL7 Message created for WebhookEvent ID {event_id}")
+            logger.info(f"HL7 Message created for WebhookEvent ID {event_id} |NMC_ORDER_ID: {webhook_event.nmc_order_id} ")
         else:
             logger.info(f"WebhookEvent ID {event_id} has not HMIS CODE")
         
@@ -74,6 +77,8 @@ def get_event_data(tei):
             event_status=status
         )
 
+    return status
+
 
 @shared_task
 def get_hmis_code(orgUnit, tei):
@@ -91,6 +96,8 @@ def get_hmis_code(orgUnit, tei):
 
     if hmis_code:
         WebhookEvent.objects.filter(tracked_entity_id=tei).update(hmis_code=hmis_code)
+
+    return hmis_code
 
 
 

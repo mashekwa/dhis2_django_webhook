@@ -12,11 +12,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-import environ
+# import environ
 
 #Initialise environment variables
-env = environ.Env()
-environ.Env.read_env()
+# env = environ.Env()
+# environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,6 +32,13 @@ SECRET_KEY = "django-insecure-c%yz)!wwlrm8*i2%nf96gop_5149mcf_f473^)fkym6zrp-&ij
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://bd2c-45-215-255-22.ngrok-free.app',  # Add your ngrok domain
+]
+
+# Optional: if the POST is coming from a frontend with Axios or fetch:
+CORS_ALLOW_CREDENTIALS = True  # If using CORS with cookies
 
 
 # Application definition

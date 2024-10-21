@@ -10,7 +10,7 @@ class Dhis2Config(models.Model):
         return f"Configs for: {self.instance_name}"
 
 # Create your models here.
-class WebhookEvent(models.Model):
+class WebhookEvent(models.Model):    
     tracked_entity_id = models.CharField(max_length=50, null=True, blank=True, unique=True)
     enrollment_id = models.CharField(max_length=50, null=True, blank=True)
     event_org_unit_id = models.CharField(max_length=50, null=True, blank=True)
@@ -61,3 +61,4 @@ class Hl7LabRequest(models.Model):
     webhook = models.ForeignKey(WebhookEvent, on_delete=models.CASCADE)
     nmc_order_id = models.CharField(max_length=100, null=True, blank=True)
     message_body=models.TextField(blank=True, null=True)
+    event_status=models.CharField(max_length=50, null=True, blank=True)

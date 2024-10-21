@@ -29,88 +29,7 @@ ou = "pXhz0PLiYZX"
 program_id = 'gr3uWZVzPQT'
 program_stage_id = 'GIFHpXo8dlP'
 
-url= f"https://dev.eidsr.znphi.co.zm/api/trackedEntityInstances.json?program=gr3uWZVzPQT&ou={ou}&filter=RcCp8T4IWfS:eq:{nmc_no}"
-
-# def get_event_data(tei):
-#     #'fields': 'event,status,program,programStage,trackedEntity,orgUnit,orgUnitName'
-#     params={
-#         'trackedEntity':tei,
-#         'fields': 'event,status, trackedEntity',
-#         }
-
-#     #url = f"/api/tracker/events.json?trackedEntity={tei}&fields=event,status,program,programStage,trackedEntity,orgUnit,orgUnitName"
-#     r = api.get('tracker/events', params=params)
-#     data = r.json()
-#     data = data['instances']
-
-#     # Ensure the list is not empty
-#     if len(data) > 0:
-#         first_item = data[0]  # Access the first dictionary in the list
-#         event = first_item.get('event')  # Safely get the 'event' value
-#         status = first_item.get('status')  # Safely get the 'status' value
-#         tei = first_item.get('trackedEntity')
-
-#         try:
-#             event, created = WebhookEvent.objects.update_or_create(
-#                 tracked_entity_id=tei,
-#                 defaults={
-#                     'event_id': event,
-#                     'event_status': status,
-#                 }
-#             )
-#             if created:
-#                 return JsonResponse({'status': 'success', 'message': 'Event created'}, status=201)
-#             else:
-#                 return JsonResponse({'status': 'success', 'message': 'Event updated'}, status=200)
-        
-#         except Exception as e:
-#             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-#     print(event)
-#     print(status)
-#     print(tei)
-    
-#     return event, status
-
-# def get_hmis_code(orgUnit, tei):
-#     print(orgUnit)
-
-#     #url = f"/api/organisationUnits/{orgUnit}.json?fields=id,attributeValues[value]&filter=attributeValues.attribute.id:eq:ZpAtPLnerqC"
-#     params={
-#         'fields': 'attributeValues[value]',
-#         'filter':'attributeValues.attribute.id:eq:ZpAtPLnerqC'
-#         }
-    
-#     ou = api.get(f'organisationUnits/{orgUnit}', params=params)
-#     data = ou.json()
-
-#     # Access the 'value' field
-#     hmis_code = None  # Default in case of failure
-
-#     if 'attributeValues' in data and isinstance(data['attributeValues'], list) and len(data['attributeValues']) > 0:
-#         attribute = data['attributeValues'][0]  # Access the first item in the list
-#         if 'value' in attribute:
-#             hmis_code = attribute['value']  # Get the 'value' field
-
-#     print(hmis_code)
-#     if hmis_code is not None:
-#         try:
-#             event, created = WebhookEvent.objects.update_or_create(
-#                 tracked_entity_id=tei,
-#                 defaults={
-#                     'hmis_code': hmis_code,
-#                 }
-#             )
-#             if created:
-#                 return JsonResponse({'status': 'success', 'message': 'Event created'}, status=201)
-#             else:
-#                 return JsonResponse({'status': 'success', 'message': 'Event updated'}, status=200)
-        
-#         except Exception as e:
-#             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-
-    
+url= f"https://dev.eidsr.znphi.co.zm/api/trackedEntityInstances.json?program=gr3uWZVzPQT&ou={ou}&filter=RcCp8T4IWfS:eq:{nmc_no}"   
 
 
 @csrf_exempt
@@ -118,6 +37,7 @@ def webhook_receiver(request):
     if request.method == 'POST':
         # Get the raw POST body (it can be JSON)
         raw_data = request.body.decode('utf-8')
+        print(raw_data)
         
         try:
             # Parse the JSON data
@@ -144,7 +64,10 @@ def webhook_receiver(request):
         case_phone_number = json_data.get('LAJ1gDQ6Mrz', None)
         case_loinc_code = json_data.get('slkkXAIqOnm', None)
         case_disease_code = json_data.get('iSIhKjnlMkv', None)
-        case_rapid_test_done = json_data.get('nxNEeKHN6qP', None).split('_')[1]
+        case_rapid_test_done = json_data.get('nxNEeKHN6qP', None)
+        if case_rapid_test_done is not None:
+            case_rapid_test_done = case_rapid_test_done.split('_')[1]
+            
         case_notifier_name = json_data.get('JG8nmeI0wPM', None)
         case_notifier_designation = json_data.get('ldK0zmOre52', None)
         case_specimen_name = json_data.get('UEY5S9a1wAY', None)
