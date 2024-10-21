@@ -8,8 +8,70 @@ from .models import WebhookEvent, Hl7LabRequest
 from dhis2 import Api
 import logging
 from celery.utils.log import get_logger
+from confluent_kafka import Producer, KafkaException
+from django.db import transaction
 
 logger = get_logger(__name__)
+
+# Kafka configuration as a dictionary for easy management
+KAFKA_CONFIG = {
+  "bootstrap.servers": "10.51.73.144:9092",
+  "security.protocol": "SASL_PLAINTEXT",
+  "sasl.mechanism": "SCRAM-SHA-256",
+  "sasl.username": "eidsr-user",
+  "sasl.password": "620a594e",
+  "group.id": "eidsr_results-north-training",
+  "debug": "broker,security"  # Enable detailed debugging logs
+}
+
+# Create a Kafka producer with the given configuration
+producer = Producer(KAFKA_CONFIG)
+
+def delivery_report(err, msg, hl7_request_id):
+    """Callback to log the delivery result and update the database."""
+    try:
+        with transaction.atomic():
+            # Retrieve the HL7LabRequest record by ID
+            hl7_request = Hl7LabRequest.objects.get(id=hl7_request_id)
+            
+            if err is not None:
+                logger.error(f"Message delivery failed: {err}")
+                hl7_request.posted_to_kafka = "failed"
+            else:
+                logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
+                hl7_request.posted_to_kafka = "success"
+
+            # Save the updated status
+            hl7_request.save()
+    except Hl7LabRequest.DoesNotExist:
+        logger.error(f"HL7LabRequest with ID {hl7_request_id} does not exist.")
+    except Exception as e:
+        logger.error(f"Error updating Kafka status: {e}")
+
+
+@shared_task
+def send_kafka_message(hl7_msg, hl7_request_id):
+    print(hl7_msg)
+    """Send an HL7 message to Kafka asynchronously."""
+    try:
+        # Construct the HL7 message
+        message = hl7_msg
+
+        # Produce the message to the Kafka topic "eidsr-orders"
+        producer.produce(
+            "eidsr-orders", 
+            value=message, 
+            callback=lambda err, msg: delivery_report(err, msg, hl7_request_id)
+        )
+        producer.poll(1)  # Wait up to 1 second for delivery callback
+
+        # Ensure all messages are flushed
+        producer.flush()
+
+    except Exception as e:
+        logger.error(f"Failed to send message to Kafka: {e}")
+
+
 
 @shared_task
 def transform_request_to_hl7(event_id):
@@ -98,6 +160,7 @@ def get_hmis_code(orgUnit, tei):
         WebhookEvent.objects.filter(tracked_entity_id=tei).update(hmis_code=hmis_code)
 
     return hmis_code
+
 
 
 
