@@ -1,0 +1,23 @@
+code,name,id,displayFormName
+LAB_SPEC_TYP_BUBO_ASPIRATE,Aspirate,uJRVG0RwjHk,Aspirate
+LAB_SPEC_TYP_CSF,Cerebrospinal Fluid (CSF),zOnprXoDKR7,Cerebrospinal Fluid (CSF)
+LAB_SPEC_TYP_NASO_SWAB,Nasopharyngeal swab,BbDjKJOeFEV,Nasopharyngeal swab
+LAB_SPEC_TYP_PLASMA,Plasma,eWA5y8KyqCN,Plasma
+LAB_SPEC_TYP_RECTSWAB_CBLAIR,Rectal swab in Cary Blair media,G1Y3wRPdOQg,Rectal swab in Cary Blair media
+LAB_SPEC_TYP_SERUM,Serum,eTTfasC1kcB,Serum
+LAB_SPEC_TYP_SPUTUM,Sputum,SmlGLLI0Lnb,Sputum
+LAB_SPEC_TYP_STOOL,Stool,Xh54QQT8gj8,Stool
+LAB_SPEC_TYP_SWAB,Swab,mr8AY51nMvF,Swab
+LAB_SPEC_TYPE_THROAT_SWAB,Swab: Throat,vRhYGVZtiOf,Swab: Throat
+LAB_SPEC_TYP_BIOPSY,Tissue Biopsy,ndb9rsiX1Ux,Tissue Biopsy
+LAB_SPEC_TYP_URINE,Urine,aqSFNH2Gx5k,Urine
+LAB_SPEC_TYP_BLOOD,Whole Blood,bBEya2JhzuA,Whole Blood
+LAB_SPEC_TYP_OTHER,Other,bWZh1naJVZW,Other
+LAB_SPEC_TYPE_NASAL_SWAB,Swab: Nasal,ulgQYsPF6TT,Swab: Nasal
+LAB_SPEC_TYPE_NASOPHRYNGEAL_SWAB,Swab: Nasophryngeal,bHhdwDpmTTF,Swab: Nasophryngeal
+LAB_SPEC_TYPE_OROPHARYNGEAL_SWAB,Swab: Oropharyngeal,lAc7LRMFKof,Swab: Oropharyngeal
+LAB_SPEC_TYPE_RCBM_SWAB,Swab: Rectal in Cary Blair media,JxO8uEh1pMa,Swab: Rectal in Cary Blair media
+LAB_SPEC_TYPE_LESSIONS,Lessions,yWwHrTvy7eS,Lessions
+LAB_SPEC_TYPE_SKIN_SCRAPPING,Skin scrapping,ITnDhrKVnMA,Skin scrapping
+LAB_SPEC_TYPE_SKIN_SNIP,Skin snip,It9vmCZbtgA,Skin snip
+LAB_SPEC_TYPE_BRAIN_TISSUE,Brain tissue,P36qbEq6M69,Brain tissue

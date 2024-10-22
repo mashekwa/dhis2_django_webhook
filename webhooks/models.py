@@ -62,3 +62,4 @@ class Hl7LabRequest(models.Model):
     nmc_order_id = models.CharField(max_length=100, null=True, blank=True)
     message_body=models.TextField(blank=True, null=True)
     event_status=models.CharField(max_length=50, null=True, blank=True)
+    posted_to_kafka=models.CharField(max_length=50, null=True, blank=True)

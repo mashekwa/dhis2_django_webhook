@@ -12,6 +12,8 @@ from confluent_kafka import Producer, KafkaException
 from django.db import transaction
 from django.conf import settings
 import uuid
+import pandas as pd
+import os 
 
 logger = get_logger(__name__)
 
@@ -38,6 +40,36 @@ def delivery_report(err, msg, hl7_request_id):
         logger.error(f"HL7LabRequest with ID {hl7_request_id} does not exist.")
     except Exception as e:
         logger.error(f"Error updating Kafka status: {e}")
+
+
+# PHONE FORMAT HELPER FUNCTION
+def format_phone_number(phone_number):
+    """Format the phone number into (260)XXXX format."""
+    if not phone_number:
+        return ""
+
+    if len(phone_number) == 12:
+        return f"(260){phone_number[3:]}"
+    elif len(phone_number) == 10:
+        return f"(260){phone_number[1:]}"
+    return phone_number  # Return as-is if it doesn't match expected patterns
+
+
+# SPECIMENT NAME HELPER FUNCTION
+def get_real_speciment(LAB_SPEC_TYPE):
+    specimen_type_filename = os.path.join(os.path.dirname(__file__), 'mappings', 'lab_specimen_type.csv')
+    specimen_type_df = pd.read_csv(specimen_type_filename)
+
+    # Filter and assign
+    is_specimen = specimen_type_df['code'] == LAB_SPEC_TYPE
+    specimen_filter = specimen_type_df[is_specimen]
+    if specimen_filter.shape[0] > 0:
+        case_specimen_name = specimen_filter['name'].to_string(index = False)
+    else:
+        case_specimen_name = LAB_SPEC_TYPE
+
+    return case_specimen_name
+
 
 
 @shared_task
@@ -71,7 +103,6 @@ def transform_request_to_hl7(event_id):
         # Ensure both event_status and hmis_code are not null
         if webhook_event.hmis_code:
             # Mapping the HL7 Message
-
 
             message = (
                 f'MSH|^~\\&|ZMeIDSR|^{webhook_event.hmis_code}^L|DISA*LAB|{webhook_event.lab_code}|'
@@ -110,7 +141,8 @@ def transform_request_to_hl7(event_id):
 
 @shared_task
 def get_event_data(tei):
-    api = Api(settings.DHIS_URL, settings.DHIS_USER, settings.DHIS_PASS)
+    logger.info(f"DHIS_URL: {settings.DHIS_URL}")
+    api = Api("https://dev.eidsr.znphi.co.zm", "Reuben_Kaponde", "P@ssword#25$")
     params = {
         'trackedEntity': tei,
         'fields': 'event,status, trackedEntity',
@@ -131,9 +163,29 @@ def get_event_data(tei):
     return status
 
 
+# @shared_task
+# def get_hmis_code(orgUnit, tei):
+#     api = Api("https://dev.eidsr.znphi.co.zm", settings.DHIS_USER, settings.DHIS_PASS)
+#     params = {
+#         'fields': 'attributeValues[value]',
+#         'filter': 'attributeValues.attribute.id:eq:ZpAtPLnerqC'
+#     }
+#     ou = api.get(f'organisationUnits/{orgUnit}', params=params)
+#     data = ou.json()
+
+#     hmis_code = None
+#     if 'attributeValues' in data and data['attributeValues']:
+#         hmis_code = data['attributeValues'][0].get('value')
+
+#     if hmis_code:
+#         WebhookEvent.objects.filter(tracked_entity_id=tei).update(hmis_code=hmis_code)
+
+#     return hmis_code
+
 @shared_task
 def get_hmis_code(orgUnit, tei):
-    api = Api(settings.DHIS_URL, settings.DHIS_USER, settings.DHIS_PASS)
+    logger.info(f"DHIS_URL: {settings.DHIS_URL}")
+    api = Api("https://dev.eidsr.znphi.co.zm", "Reuben_Kaponde", "P@ssword#25$")
     params = {
         'fields': 'attributeValues[value]',
         'filter': 'attributeValues.attribute.id:eq:ZpAtPLnerqC'
@@ -149,6 +201,102 @@ def get_hmis_code(orgUnit, tei):
         WebhookEvent.objects.filter(tracked_entity_id=tei).update(hmis_code=hmis_code)
 
     return hmis_code
+
+@shared_task
+def process_webhook_data(json_data):
+    """Process the received webhook data."""
+    try:
+        # Extracting the necessary fields from the parsed JSON
+        tracked_entity_id = json_data.get('TRACKED_ENTITY_ID', None)
+        enrollment_id = json_data.get('ENROLLMENT_ID', None)
+        event_org_unit_id = json_data.get('EVENT_ORG_UNIT_ID', None)
+        org_unit_code = json_data.get('ORG_UNIT_CODE', None)
+        facility_name = json_data.get('ORG_UNIT_NAME', None)
+        program_stage_name = json_data.get('PROGRAM_STAGE_NAME', None)
+        event_date = json_data.get('EVENT_DATE', None)
+        nmc_case_id  = json_data.get('RcCp8T4IWfS', None)
+        nmc_order_id = json_data.get('w0JLuyVBnhf', None)
+        nmc_diag_name = json_data.get('iSIhKjnlMkv', None)
+        case_last_name = json_data.get('ENRjVGxVL6l', None)
+        case_first_name = json_data.get('VRrev6t48AR', None)
+        case_dob = json_data.get('MG13HhvitMm', None)
+        case_sex = json_data.get('aBWXXTLYXGc', None)
+        case_age_days = json_data.get('XIZZPCv7ljB', None)        
+        case_phone_number = json_data.get('LAJ1gDQ6Mrz', None)
+        case_phone_number_formatted = format_phone_number(case_phone_number) # USE HELPER FUNCTION TO FORMAT PHONE
+        case_loinc_code = json_data.get('slkkXAIqOnm', None)
+        case_disease_code = json_data.get('iSIhKjnlMkv', None)
+        case_rapid_test_done = json_data.get('nxNEeKHN6qP', None)
+        if case_rapid_test_done is not None:
+            case_rapid_test_done = case_rapid_test_done.split('_')[1]                
+        case_notifier_name = json_data.get('JG8nmeI0wPM', None)
+        case_notifier_designation = json_data.get('ldK0zmOre52', None)
+        case_specimen_name = json_data.get('UEY5S9a1wAY', None)
+        case_specimen_name = get_real_speciment(case_specimen_name) # USE MAPPING FOR CASE SPECIMEN NAME
+        patient_symptomatic = json_data.get('TVNg8Gec4uT').split('_')[1]
+        lab_notifier_name =  json_data.get('VMAxwiQtcIY', None)
+        lab_specimen_sent_date =json_data.get('yZ2nW8FCIVg', None)
+        lab_specimen_collection_date = json_data.get('XMvZglNvV2F', None)
+        lab_filler_phone_number = json_data.get('KFxGykEGOQj', None)
+        lab_filler_phone_number = format_phone_number(lab_filler_phone_number)
+        lab_code = json_data.get('HhNhMHtKYiB')[-3:]
+        lab_request_pathogen = json_data.get('nMuxTzmCz7U', None)
+        case_loinc_name = "Culture" # WHY IS THIS CULTURE BY DEFAULT  
+
+        # Create or update the WebhookEvent
+        event, created = WebhookEvent.objects.update_or_create(
+            tracked_entity_id=tracked_entity_id,
+            defaults={
+                'event_org_unit_id': event_org_unit_id,
+                'org_unit_code': org_unit_code,
+                'enrollment_id':enrollment_id,
+                'program_stage_name': program_stage_name,
+                'event_date': event_date,
+                'nmc_case_id':nmc_case_id,
+                'nmc_order_id':nmc_order_id,
+                'case_last_name':case_last_name,
+                'case_first_name':case_first_name,
+                'case_dob': case_dob,
+                'case_sex':case_sex ,
+                'lab_code':lab_code,
+                'patient_symptomatic':patient_symptomatic,
+                'lab_notifier_name':lab_notifier_name,
+                'facility_name':facility_name,
+                'lab_request_pathogen':lab_request_pathogen,
+                'raw_data': json_data,
+                'message_type': 'OML^O21^OML_O21',
+                'country':'ZMB',
+                'nmc_diag_name':nmc_diag_name,
+                'lab_filler_phone_number': lab_filler_phone_number,
+                'case_phone_number':case_phone_number_formatted,
+                'case_disease_code':case_disease_code,
+                'case_loinc_code':case_loinc_code,
+                'case_loinc_name':case_loinc_name,
+                'lab_specimen_sent_date':lab_specimen_sent_date,
+                'lab_specimen_collection_date':lab_specimen_collection_date,
+                'case_rapid_test_done':case_rapid_test_done,
+                'case_notifier_name':case_notifier_name,
+                'case_notifier_designation': case_notifier_designation,
+                'case_specimen_name':case_specimen_name,
+            }
+        )  
+        # Trigger additional Celery tasks if necessary
+        if created:
+            print(f"{tracked_entity_id} created.")
+        else:
+            print(f"{tracked_entity_id} updated.")
+
+        # Call background tasks asynchronously
+        get_event_data.delay(tracked_entity_id)
+
+        # Call get_hmis_code only if the hmis_code is missing
+        if not event.hmis_code:
+            get_hmis_code.delay(event_org_unit_id, tracked_entity_id)
+
+    except Exception as e:
+        # Log errors and handle exceptions gracefully
+        print(f"Error processing webhook data: {str(e)}")
+
 
 
 

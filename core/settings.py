@@ -105,22 +105,34 @@ DATABASES = {
 }
 
 # Kafka Configurations
+# KAFKA_CONFIG = {
+#     "bootstrap.servers": os.getenv("KAFKA_BOOTSTRAP_SERVERS"),
+#     "security.protocol": os.getenv("KAFKA_SECURITY_PROTOCOL"),
+#     "sasl.mechanism": os.getenv("KAFKA_SASL_MECHANISM"),
+#     "sasl.username": os.getenv("KAFKA_USERNAME"),
+#     "sasl.password": os.getenv("KAFKA_PASSWORD"),
+#     "group.id": os.getenv("KAFKA_GROUP_ID")
+# }
 KAFKA_CONFIG = {
-    "bootstrap.servers": os.getenv("KAFKA_BOOTSTRAP_SERVERS"),
-    "security.protocol": os.getenv("KAFKA_SECURITY_PROTOCOL"),
-    "sasl.mechanism": os.getenv("KAFKA_SASL_MECHANISM"),
-    "sasl.username": os.getenv("KAFKA_USERNAME"),
-    "sasl.password": os.getenv("KAFKA_PASSWORD"),
-    "group.id": os.getenv("KAFKA_GROUP_ID"),
-    "debug":os.getenv("KAFKA_DEBUG"),
-    "log_level": 7  # Enable detailed logging
+    "bootstrap.servers": "10.51.73.144:9092",
+    "security.protocol": "SASL_PLAINTEXT",
+    "sasl.mechanism": "SCRAM-SHA-256",
+    "sasl.username": "eidsr-user",
+    "sasl.password": "620a594e",
+    "group.id": "eidsr_results-north-training",
+    "debug":"all",
+    'log_level': 7  # Enable detailed logging
 }
 
 
 # DHIS2
-DHIS_URL=os.getenv("DHIS_URL"),
-DHIS_USER=os.getenv("DHIS_USER"),
-DHIS_PASS=os.getenv("DHIS_PASS"),
+# DHIS_URL=os.getenv("DHIS_URL"),
+# DHIS_USER=os.getenv("DHIS_USER"),
+# DHIS_PASS=os.getenv("DHIS_PASS"),
+
+DHIS_URL="https://dev.eidsr.znphi.co.zm",
+DHIS_USER="Reuben_Kaponde",
+DHIS_PASS="P@ssword#25$",
 
 
 # Password validation
