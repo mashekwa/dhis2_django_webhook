@@ -28,25 +28,34 @@ dhis_user = config('DHIS_USER')
 dhis_pass = config('DHIS_PASS')
 dhis_url = config('DHIS_URL')
 
+# def delivery_report(err, msg, hl7_request_id):
+#     """Callback to log the delivery result and update the database."""
+#     try:
+#         with transaction.atomic():
+#             hl7_request = Hl7LabRequest.objects.get(id=hl7_request_id)
+
+#             if err is not None:
+#                 logger.error(f"Message delivery failed: {err}")
+#                 hl7_request.posted_to_kafka = "failed"
+#             else:
+#                 logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
+#                 hl7_request.posted_to_kafka = "success"
+
+#             hl7_request.save()
+
+#     except Hl7LabRequest.DoesNotExist:
+#         logger.error(f"HL7LabRequest with ID {hl7_request_id} does not exist.")
+#     except Exception as e:
+#         logger.error(f"Error updating Kafka status: {e}")
+
 def delivery_report(err, msg, hl7_request_id):
-    """Callback to log the delivery result and update the database."""
-    try:
-        with transaction.atomic():
-            hl7_request = Hl7LabRequest.objects.get(id=hl7_request_id)
-
-            if err is not None:
-                logger.error(f"Message delivery failed: {err}")
-                hl7_request.posted_to_kafka = "failed"
-            else:
-                logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
-                hl7_request.posted_to_kafka = "success"
-
-            hl7_request.save()
-
-    except Hl7LabRequest.DoesNotExist:
-        logger.error(f"HL7LabRequest with ID {hl7_request_id} does not exist.")
-    except Exception as e:
-        logger.error(f"Error updating Kafka status: {e}")
+    """Delivery report callback to confirm message delivery."""
+    if err is not None:
+        logger.error(f"Message delivery for {hl7_request_id} failed: {err}")
+    else:
+        logger.info(
+            f"Message {hl7_request_id} delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}"
+        )
 
 
 # PHONE FORMAT HELPER FUNCTION
@@ -82,6 +91,7 @@ def get_real_speciment(LAB_SPEC_TYPE):
 @shared_task
 def send_kafka_message(hl7_msg, hl7_request_id):
     """Send an HL7 message to Kafka asynchronously."""
+    logger.info(f"***-----KAFKA MESSAGE SENDING------****")
     try:
         logger.info(f"Sending message to Kafka: {hl7_msg}")
 
