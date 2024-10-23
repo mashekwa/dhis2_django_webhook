@@ -21,8 +21,17 @@ logger = get_logger(__name__)
 # Suppress only InsecureRequestWarnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+KAFKA_CONFIG = {
+    "bootstrap.servers": config("KAFKA_BOOTSTRAP_SERVERS"),
+    "security.protocol": config("KAFKA_SECURITY_PROTOCOL"),
+    "sasl.mechanism": config("KAFKA_SASL_MECHANISM"),
+    "sasl.username": config("KAFKA_USERNAME"),
+    "sasl.password": config("KAFKA_PASSWORD"),
+    "group.id": config("KAFKA_GROUP_ID")
+}
+
 # Initialize Kafka producer with the configuration, configs in settings .py. and .env file
-producer = Producer(settings.KAFKA_CONFIG)
+producer = Producer(KAFKA_CONFIG)
 message_uuid = str(uuid.uuid4())
 dhis_user = config('DHIS_USER')
 dhis_pass = config('DHIS_PASS')
