@@ -103,7 +103,7 @@ def send_kafka_message(hl7_msg, hl7_request_id):
         )
         producer.poll(1)  # Wait up to 1 second for delivery callback
         producer.flush()
-
+        logger.info(f"***----KAFKA SENT---****")
     except KafkaException as ke:
         logger.error(f"Kafka error: {ke.args}")
     except Exception as e:
