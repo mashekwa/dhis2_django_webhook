@@ -101,6 +101,7 @@ def get_real_speciment(LAB_SPEC_TYPE):
 def send_kafka_message(hl7_msg, hl7_request_id):
     """Send an HL7 message to Kafka asynchronously."""
     logger.info(f"***-----KAFKA MESSAGE SENDING------****")
+    logger.info(f'SERVER: {config("KAFKA_BOOTSTRAP_SERVERS")}')
     try:
         logger.info(f"Sending message to Kafka: {hl7_msg}")
 
