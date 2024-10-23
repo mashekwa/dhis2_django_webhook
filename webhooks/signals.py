@@ -8,14 +8,12 @@ logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=WebhookEvent)
 def trigger_hl7_message(sender, instance, created, **kwargs):
-    if created:
-        pass
+    logger.info(f"****-------TRANSFORMER-------********")
+    if instance.hmis_code and instance.event_status.strip() == "COMPLETED":
+        logger.info(f"ID: {instance.id} has status COMPLETED, triggering HL7 transformation.")
+        transform_request_to_hl7.delay(instance.id)
     else:
-        if instance.hmis_code and instance.event_status.strip() == "COMPLETED":
-            logger.info(f"Event with ID {instance.id} has status COMPLETED, triggering HL7 transformation.")
-            transform_request_to_hl7.delay(instance.id)
-        else:
-            logger.info(f"Event with ID {instance.id} not eligible for HL7 transformation. Status: {instance.event_status}")
+        logger.info(f"ID: {instance.id} not eligible for HL7 transformation. Status: {instance.event_status}")
 
 
 @receiver(post_save, sender=Hl7LabRequest)
