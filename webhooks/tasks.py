@@ -1,5 +1,5 @@
 from __future__ import absolute_import, unicode_literals
-
+from decouple import config
 from celery import shared_task
 from core.celery import app 
 import time
@@ -20,6 +20,9 @@ logger = get_logger(__name__)
 # Initialize Kafka producer with the configuration, configs in settings .py. and .env file
 producer = Producer(settings.KAFKA_CONFIG)
 message_uuid = str(uuid.uuid4())
+dhis_user = config('DHIS_USER')
+dhis_pass = config('DHIS_PASS')
+dhis_url = config('DHIS_URL')
 
 def delivery_report(err, msg, hl7_request_id):
     """Callback to log the delivery result and update the database."""
@@ -122,17 +125,29 @@ def transform_request_to_hl7(event_id):
             )
 
             # Create Hl7LabRequest object to store the generated HL7 message
-            Hl7LabRequest.objects.create(
-                webhook=webhook_event,
+            event, created = Hl7LabRequest.objects.update_or_create(
                 nmc_order_id=webhook_event.nmc_order_id,
-                message_body=message,
-                event_status=webhook_event.event_status
+                defaults={
+                    'webhook':webhook_event,
+                    'message_body':message,
+                    'event_status':webhook_event.event_status
+                }
             )
 
-            logger.info(f"HL7 Message created for WebhookEvent ID {event_id} |NMC_ORDER_ID: {webhook_event.nmc_order_id} ")
+            # Hl7LabRequest.objects.create(
+            #     webhook=webhook_event,
+            #     nmc_order_id=webhook_event.nmc_order_id,
+            #     message_body=message,
+            #     event_status=webhook_event.event_status
+            # )
+            if created:
+                logger.info(f"HL7 Message created for WebhookEvent ID {event_id} |NMC_ORDER_ID: {webhook_event.nmc_order_id} ")
+            else:
+                logger.info(f"HL7 Message updated for WebhookEvent ID {event_id} |NMC_ORDER_ID: {webhook_event.nmc_order_id} ")
+
+            logger.info(f"HL7 Message processing complete! ")
         else:
-            logger.info(f"WebhookEvent ID {event_id} has not HMIS CODE")
-        
+            logger.info(f"WebhookEvent ID {event_id} has not HMIS CODE")        
 
     except WebhookEvent.DoesNotExist:
         logger.error(f"WebhookEvent with ID {event_id} does not exist")
@@ -141,8 +156,8 @@ def transform_request_to_hl7(event_id):
 
 @shared_task
 def get_event_data(tei):
-    logger.info(f"DHIS_URL: {settings.DHIS_URL}")
-    api = Api("https://dev.eidsr.znphi.co.zm", "Reuben_Kaponde", "P@ssword#25$")
+    logger.info(f"DHIS_URL: {dhis_url}")
+    api = Api(f"{dhis_url}", dhis_user, dhis_pass)
     params = {
         'trackedEntity': tei,
         'fields': 'event,status, trackedEntity',
@@ -163,29 +178,10 @@ def get_event_data(tei):
     return status
 
 
-# @shared_task
-# def get_hmis_code(orgUnit, tei):
-#     api = Api("https://dev.eidsr.znphi.co.zm", settings.DHIS_USER, settings.DHIS_PASS)
-#     params = {
-#         'fields': 'attributeValues[value]',
-#         'filter': 'attributeValues.attribute.id:eq:ZpAtPLnerqC'
-#     }
-#     ou = api.get(f'organisationUnits/{orgUnit}', params=params)
-#     data = ou.json()
-
-#     hmis_code = None
-#     if 'attributeValues' in data and data['attributeValues']:
-#         hmis_code = data['attributeValues'][0].get('value')
-
-#     if hmis_code:
-#         WebhookEvent.objects.filter(tracked_entity_id=tei).update(hmis_code=hmis_code)
-
-#     return hmis_code
-
 @shared_task
 def get_hmis_code(orgUnit, tei):
-    logger.info(f"DHIS_URL: {settings.DHIS_URL}")
-    api = Api("https://dev.eidsr.znphi.co.zm", "Reuben_Kaponde", "P@ssword#25$")
+    logger.info(f"DHIS_URL: {dhis_url}")
+    api = Api(f"{dhis_url}", dhis_user, dhis_pass)
     params = {
         'fields': 'attributeValues[value]',
         'filter': 'attributeValues.attribute.id:eq:ZpAtPLnerqC'

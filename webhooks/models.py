@@ -1,13 +1,29 @@
 from django.db import models
 
 class Dhis2Config(models.Model):
-    instance_name = models.CharField(max_length=50, null=True, blank=True)
-    base_url = models.CharField(max_length=50, null=True, blank=True)
-    username = models.CharField(max_length=50, null=True, blank=True)
-    password = models.CharField(max_length=50, null=True, blank=True)
+    name = models.CharField(max_length=100, help_text="Configuration name (e.g., 'Primary DHIS2')", unique=True)
+    api_url = models.URLField(help_text="Base URL for the DHIS2 API")
+    username = models.CharField(max_length=100, help_text="DHIS2 Username")
+    password = models.CharField(max_length=100, help_text="DHIS2 Password")
+    is_active = models.BooleanField(default=True, help_text="Use this configuration if active")
 
     def __str__(self):
-        return f"Configs for: {self.instance_name}"
+        return self.name
+    
+class KafkaConfig(models.Model):
+    name = models.CharField(max_length=100, help_text="Configuration name (e.g., 'MOH Kafka')", unique=True)
+    bootstrap_servers = models.CharField(max_length=100, help_text="Kafka Username")
+    security_protocol = models.CharField(max_length=100, help_text="Kafka Username")
+    mechanism = models.CharField(max_length=100, help_text="Kafka Username")
+    username = models.CharField(max_length=100, help_text="Kafka Username")
+    password = models.CharField(max_length=100, help_text="Kafka Password")
+    group_id = models.CharField(max_length=100, help_text="Group ID")
+    debug  = models.CharField(max_length=100, help_text="Kafka Password", null=True, blank=True)
+    log_level = models.IntegerField(null=True, blank=True)
+    is_active = models.BooleanField(default=True, help_text="Use this configuration if active")
+
+    def __str__(self):
+        return self.name
 
 # Create your models here.
 class WebhookEvent(models.Model):    
@@ -58,8 +74,8 @@ class WebhookEvent(models.Model):
 
 
 class Hl7LabRequest(models.Model):
-    webhook = models.ForeignKey(WebhookEvent, on_delete=models.CASCADE)
-    nmc_order_id = models.CharField(max_length=100, null=True, blank=True)
+    nmc_order_id = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    webhook = models.ForeignKey(WebhookEvent, on_delete=models.CASCADE)    
     message_body=models.TextField(blank=True, null=True)
     event_status=models.CharField(max_length=50, null=True, blank=True)
     posted_to_kafka=models.CharField(max_length=50, null=True, blank=True)

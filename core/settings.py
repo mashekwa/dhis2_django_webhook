@@ -12,28 +12,20 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
 # import environ
 
-SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+SECRET_KEY = config('DJANGO_SECRET_KEY')
+DEBUG = config('DEBUG', cast=bool, default=False)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-c%yz)!wwlrm8*i2%nf96gop_5149mcf_f473^)fkym6zrp-&ij"
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', '').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://bd2c-45-215-255-22.ngrok-free.app',  # Add your ngrok domain
+    'https://bd2c-45-215-255-22.ngrok-free.app',
+    'http://10.51.75.70',  # Add your ngrok domain
 ]
 
 # Optional: if the POST is coming from a frontend with Axios or fetch:
@@ -92,10 +84,10 @@ USE_L10N = False
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',        # Database name
-        'USER': 'postgres',        # Database user
-        'PASSWORD': 'postgres',    # Database password
-        'HOST': 'pgdb',            # PostgreSQL service name in Docker Compose
+        'NAME': config('DATABASE_NAME'),        # Database name
+        'USER': config('DATABASE_USER'),       # Database user
+        'PASSWORD': config('DATABASE_PASS'),    # Database password
+        'HOST': config('DATABASE_HOST'),            # PostgreSQL service name in Docker Compose
         'PORT': '5432',            # PostgreSQL default port
     },
     'db2': {
@@ -105,34 +97,14 @@ DATABASES = {
 }
 
 # Kafka Configurations
-# KAFKA_CONFIG = {
-#     "bootstrap.servers": os.getenv("KAFKA_BOOTSTRAP_SERVERS"),
-#     "security.protocol": os.getenv("KAFKA_SECURITY_PROTOCOL"),
-#     "sasl.mechanism": os.getenv("KAFKA_SASL_MECHANISM"),
-#     "sasl.username": os.getenv("KAFKA_USERNAME"),
-#     "sasl.password": os.getenv("KAFKA_PASSWORD"),
-#     "group.id": os.getenv("KAFKA_GROUP_ID")
-# }
 KAFKA_CONFIG = {
-    "bootstrap.servers": "10.51.73.144:9092",
-    "security.protocol": "SASL_PLAINTEXT",
-    "sasl.mechanism": "SCRAM-SHA-256",
-    "sasl.username": "eidsr-user",
-    "sasl.password": "620a594e",
-    "group.id": "eidsr_results-north-training",
-    "debug":"all",
-    'log_level': 7  # Enable detailed logging
+    "bootstrap.servers": config("KAFKA_BOOTSTRAP_SERVERS"),
+    "security.protocol": config("KAFKA_SECURITY_PROTOCOL"),
+    "sasl.mechanism": config("KAFKA_SASL_MECHANISM"),
+    "sasl.username": config("KAFKA_USERNAME"),
+    "sasl.password": config("KAFKA_PASSWORD"),
+    "group.id": config("KAFKA_GROUP_ID")
 }
-
-
-# DHIS2
-# DHIS_URL=os.getenv("DHIS_URL"),
-# DHIS_USER=os.getenv("DHIS_USER"),
-# DHIS_PASS=os.getenv("DHIS_PASS"),
-
-DHIS_URL="https://dev.eidsr.znphi.co.zm",
-DHIS_USER="Reuben_Kaponde",
-DHIS_PASS="P@ssword#25$",
 
 
 # Password validation
