@@ -21,7 +21,7 @@ def trigger_hl7_message(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Hl7LabRequest)
 def post_to_kafka(sender, instance, created, **kwargs):
     """Signal to trigger Kafka message upon HL7LabRequest creation or update."""
-    if created and instance.event_status == "COMPLETED":
+    if instance.message_body and instance.event_status == "COMPLETED":
         logger.info(f"Event with ID {instance.id} has status COMPLETED, posting to KAFKA.")
         send_kafka_message.delay(instance.message_body, instance.id)  # Send ID to Celery task for processing
     else:
