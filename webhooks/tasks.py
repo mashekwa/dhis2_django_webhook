@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 from decouple import config
 from celery import shared_task
 from core.celery import app 
+import urllib3
 import time
 from django.http import JsonResponse
 from .models import WebhookEvent, Hl7LabRequest
@@ -16,6 +17,9 @@ import pandas as pd
 import os 
 
 logger = get_logger(__name__)
+
+# Suppress only InsecureRequestWarnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Initialize Kafka producer with the configuration, configs in settings .py. and .env file
 producer = Producer(settings.KAFKA_CONFIG)
@@ -166,6 +170,8 @@ def get_event_data(tei):
     r = api.get('tracker/events', params=params)
     data = r.json()['instances']
 
+    logger.info(r)
+
     if data:
         first_item = data[0]
         event = first_item.get('event')
@@ -190,6 +196,8 @@ def get_hmis_code(orgUnit, tei):
     }
     ou = api.get(f'organisationUnits/{orgUnit}', params=params)
     data = ou.json()
+
+    logger.info(ou)
 
     hmis_code = None
     if 'attributeValues' in data and data['attributeValues']:
