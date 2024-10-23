@@ -44,3 +44,5 @@ http://10.51.75.85:8000/webhooks/receive/
 docker logs -f --tail 10 dhis2_django_webhook-celery-1
 
 10.51.75.70
+
+cp example.env .env
