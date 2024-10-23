@@ -167,10 +167,19 @@ def get_event_data(tei):
         'trackedEntity': tei,
         'fields': 'event,status, trackedEntity',
     }
-    r = api.get('tracker/events', params=params)
-    data = r.json()['instances']
+    
 
-    logger.info(r)
+    try:
+        r = api.get('tracker/events', params=params)
+        data = r.json()['instances']
+        r.raise_for_status()
+        logger.info(r)
+    except api.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+    except api.exceptions.RequestException as dhis_error:
+        print(f"DHIS2 API error: {dhis_error.code}, {dhis_error.url}, {dhis_error.description}")
+    except Exception as ex:
+        print(f"An unexpected error occurred: {ex}")
 
     if data:
         first_item = data[0]
@@ -194,10 +203,18 @@ def get_hmis_code(orgUnit, tei):
         'fields': 'attributeValues[value]',
         'filter': 'attributeValues.attribute.id:eq:ZpAtPLnerqC'
     }
-    ou = api.get(f'organisationUnits/{orgUnit}', params=params)
-    data = ou.json()
 
-    logger.info(ou)
+    try:
+        ou = api.get(f'organisationUnits/{orgUnit}', params=params)
+        data = ou.json()
+        ou.raise_for_status()
+        logger.info(ou)
+    except api.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+    except api.exceptions.RequestException as dhis_error:
+        print(f"DHIS2 API error: {dhis_error.code}, {dhis_error.url}, {dhis_error.description}")
+    except Exception as ex:
+        print(f"An unexpected error occurred: {ex}")
 
     hmis_code = None
     if 'attributeValues' in data and data['attributeValues']:
