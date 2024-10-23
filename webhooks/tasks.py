@@ -157,7 +157,8 @@ def transform_request_to_hl7(event_id):
 @shared_task
 def get_event_data(tei):
     logger.info(f"DHIS_URL: {dhis_url}")
-    api = Api(f"{dhis_url}", dhis_user, dhis_pass, verify=False)
+    api = Api(f"{dhis_url}", dhis_user, dhis_pass)    
+    api.session.verify = False  # Disable SSL verification by modifying the internal session
     params = {
         'trackedEntity': tei,
         'fields': 'event,status, trackedEntity',
@@ -181,7 +182,8 @@ def get_event_data(tei):
 @shared_task
 def get_hmis_code(orgUnit, tei):
     logger.info(f"DHIS_URL: {dhis_url}")
-    api = Api(f"{dhis_url}", dhis_user, dhis_pass, verify=False)
+    api = Api(f"{dhis_url}", dhis_user, dhis_pass)    
+    api.session.verify = False  # Disable SSL verification by modifying the internal session
     params = {
         'fields': 'attributeValues[value]',
         'filter': 'attributeValues.attribute.id:eq:ZpAtPLnerqC'
