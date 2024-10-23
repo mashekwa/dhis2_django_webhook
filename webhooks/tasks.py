@@ -27,11 +27,15 @@ KAFKA_CONFIG = {
     "sasl.mechanism": config("KAFKA_SASL_MECHANISM"),
     "sasl.username": config("KAFKA_USERNAME"),
     "sasl.password": config("KAFKA_PASSWORD"),
-    "group.id": config("KAFKA_GROUP_ID")
+    "group.id": config("KAFKA_GROUP_ID"),
+    'socket.timeout.ms': 10000,  # Increase socket timeout
+    'message.timeout.ms': 5000,  # Timeout for producing a message
+    'retries': 3,  # Retry on failure
+    'debug': 'broker,protocol' 
 }
 
 # Initialize Kafka producer with the configuration, configs in settings .py. and .env file
-producer = Producer(settings.KAFKA_CONFIG)
+producer = Producer(KAFKA_CONFIG)
 message_uuid = str(uuid.uuid4())
 dhis_user = config('DHIS_USER')
 dhis_pass = config('DHIS_PASS')
@@ -117,7 +121,7 @@ def send_kafka_message(hl7_msg, hl7_request_id):
     
     try:
         # Check if Kafka is reachable by fetching metadata
-        metadata = producer.list_topics(timeout=5)  # Timeout after 5 seconds
+        metadata = producer.list_topics(timeout=10)  # Timeout after 5 seconds
         logger.info(f"Kafka connection successful. Available topics: {metadata.topics.keys()}")
 
         logger.info(f"Sending message to Kafka: {hl7_msg}")
