@@ -174,9 +174,9 @@ def get_event_data(tei):
         data = r.json()['instances']
         r.raise_for_status()
         logger.info(r)
-    except api.exceptions.RequestException as e:
+    except api.ClientException as e:
         print(f"Request failed: {e}")
-    except api.exceptions.RequestException as dhis_error:
+    except api.RequestException as dhis_error:
         print(f"DHIS2 API error: {dhis_error.code}, {dhis_error.url}, {dhis_error.description}")
     except Exception as ex:
         print(f"An unexpected error occurred: {ex}")
@@ -209,9 +209,9 @@ def get_hmis_code(orgUnit, tei):
         data = ou.json()
         ou.raise_for_status()
         logger.info(ou)
-    except api.exceptions.RequestException as e:
+    except api.ClientException as e:
         print(f"Request failed: {e}")
-    except api.exceptions.RequestException as dhis_error:
+    except api.RequestException as dhis_error:
         print(f"DHIS2 API error: {dhis_error.code}, {dhis_error.url}, {dhis_error.description}")
     except Exception as ex:
         print(f"An unexpected error occurred: {ex}")
