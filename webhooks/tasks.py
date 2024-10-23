@@ -88,11 +88,37 @@ def get_real_speciment(LAB_SPEC_TYPE):
 
 
 
+# @shared_task
+# def send_kafka_message(hl7_msg, hl7_request_id):
+#     """Send an HL7 message to Kafka asynchronously."""
+#     logger.info(f"***-----KAFKA MESSAGE SENDING------****")
+#     try:
+#         logger.info(f"Sending message to Kafka: {hl7_msg}")
+
+#         # Produce the message to the Kafka topic "eidsr-orders"
+#         producer.produce(
+#             "eidsr-orders",
+#             value=hl7_msg,
+#             callback=lambda err, msg: delivery_report(err, msg, hl7_request_id)
+#         )
+#         producer.poll(1)  # Wait up to 1 second for delivery callback
+#         producer.flush()
+#         logger.info(f"***----KAFKA SENT---****")
+#     except KafkaException as ke:
+#         logger.error(f"Kafka error: {ke.args}")
+#     except Exception as e:
+#         logger.error(f"Failed to send message to Kafka: {e}")
+
 @shared_task
 def send_kafka_message(hl7_msg, hl7_request_id):
     """Send an HL7 message to Kafka asynchronously."""
-    logger.info(f"***-----KAFKA MESSAGE SENDING------****")
+    logger.info("***-----KAFKA MESSAGE SENDING------****")
+    
     try:
+        # Check if Kafka is reachable by fetching metadata
+        metadata = producer.list_topics(timeout=5)  # Timeout after 5 seconds
+        logger.info(f"Kafka connection successful. Available topics: {metadata.topics.keys()}")
+
         logger.info(f"Sending message to Kafka: {hl7_msg}")
 
         # Produce the message to the Kafka topic "eidsr-orders"
@@ -103,7 +129,8 @@ def send_kafka_message(hl7_msg, hl7_request_id):
         )
         producer.poll(1)  # Wait up to 1 second for delivery callback
         producer.flush()
-        logger.info(f"***----KAFKA SENT---****")
+        logger.info("***----KAFKA SENT---****")
+    
     except KafkaException as ke:
         logger.error(f"Kafka error: {ke.args}")
     except Exception as e:
