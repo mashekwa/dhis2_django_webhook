@@ -28,8 +28,8 @@ KAFKA_CONFIG = {
     "sasl.username": config("KAFKA_USERNAME"),
     "sasl.password": config("KAFKA_PASSWORD"),
     "group.id": config("KAFKA_GROUP_ID"),
-    'socket.timeout.ms': 10000,  # Increase socket timeout
-    'message.timeout.ms': 5000,  # Timeout for producing a message
+    'socket.timeout.ms': 15000,  # Increase socket timeout
+    'message.timeout.ms': 10000,  # Timeout for producing a message
     'retries': 3,  # Retry on failure
     'debug': 'broker,protocol' 
 }
@@ -41,25 +41,25 @@ dhis_user = config('DHIS_USER')
 dhis_pass = config('DHIS_PASS')
 dhis_url = config('DHIS_URL')
 
-def delivery_report(err, msg, hl7_request_id):
-    """Callback to log the delivery result and update the database."""
-    try:
-        with transaction.atomic():
-            hl7_request = Hl7LabRequest.objects.get(id=hl7_request_id)
+# def delivery_report(err, msg, hl7_request_id):
+#     """Callback to log the delivery result and update the database."""
+#     try:
+#         with transaction.atomic():
+#             hl7_request = Hl7LabRequest.objects.get(id=hl7_request_id)
 
-            if err is not None:
-                logger.error(f"Message delivery failed: {err}")
-                hl7_request.posted_to_kafka = "failed"
-            else:
-                logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
-                hl7_request.posted_to_kafka = "success"
+#             if err is not None:
+#                 logger.error(f"Message delivery failed: {err}")
+#                 hl7_request.posted_to_kafka = "failed"
+#             else:
+#                 logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
+#                 hl7_request.posted_to_kafka = "success"
 
-            hl7_request.save()
+#             hl7_request.save()
 
-    except Hl7LabRequest.DoesNotExist:
-        logger.error(f"HL7LabRequest with ID {hl7_request_id} does not exist.")
-    except Exception as e:
-        logger.error(f"Error updating Kafka status: {e}")
+#     except Hl7LabRequest.DoesNotExist:
+#         logger.error(f"HL7LabRequest with ID {hl7_request_id} does not exist.")
+#     except Exception as e:
+#         logger.error(f"Error updating Kafka status: {e}")
         
 
 # PHONE FORMAT HELPER FUNCTION
@@ -113,17 +113,43 @@ def get_real_speciment(LAB_SPEC_TYPE):
 #     except Exception as e:
 #         logger.error(f"Failed to send message to Kafka: {e}")
 
-@shared_task
-def send_kafka_message(hl7_msg, hl7_request_id):
-    """Send an HL7 message to Kafka asynchronously."""
-    logger.info("***-----KAFKA MESSAGE SENDING------****")
-    logger.info(f"***-----{KAFKA_CONFIG}------****")
-    
-    try:
-        # Check if Kafka is reachable by fetching metadata
-        metadata = producer.list_topics(timeout=10)  # Timeout after 5 seconds
-        logger.info(f"Kafka connection successful. Available topics: {metadata.topics.keys()}")
+# @shared_task
+# def send_kafka_message(hl7_msg, hl7_request_id):
+#     """Send an HL7 message to Kafka asynchronously."""  
+#     try:
+#         # Check if Kafka is reachable by fetching metadata
+#         metadata = producer.list_topics(timeout=10)  # Timeout after 5 seconds
+#         logger.info(f"Kafka connection successful. Available topics: {metadata.topics.keys()}")
 
+#         logger.info(f"Sending message to Kafka: {hl7_msg}")
+
+#         # Produce the message to the Kafka topic "eidsr-orders"
+#         producer.produce(
+#             "eidsr-orders",
+#             value=hl7_msg,
+#             callback=lambda err, msg: delivery_report(err, msg, hl7_request_id)
+#         )
+#         producer.poll(1)  # Wait up to 1 second for delivery callback
+#         producer.flush()
+#         logger.info("***----KAFKA SENT---****")
+    
+#     except KafkaException as ke:
+#         logger.error(f"Kafka error: {ke.args}")
+#     except Exception as e:
+#         logger.error(f"Failed to send message to Kafka: {e}")
+
+
+@shared_task(bind=True)  # Bind=True allows access to 'self' for task info
+def send_kafka_message(self, hl7_msg, hl7_request_id):
+    """Send an HL7 message to Kafka asynchronously and return status."""
+    try:
+        # Verify Kafka connection by fetching metadata
+        metadata = producer.list_topics(timeout=10)
+        if "eidsr-orders" not in metadata.topics:
+            logger.error("Kafka topic 'eidsr-orders' not found.")
+            return {"status": "failed", "reason": "Topic not found"}
+
+        logger.info(f"Kafka connection successful. Available topics: {metadata.topics.keys()}")
         logger.info(f"Sending message to Kafka: {hl7_msg}")
 
         # Produce the message to the Kafka topic "eidsr-orders"
@@ -132,15 +158,28 @@ def send_kafka_message(hl7_msg, hl7_request_id):
             value=hl7_msg,
             callback=lambda err, msg: delivery_report(err, msg, hl7_request_id)
         )
-        producer.poll(1)  # Wait up to 1 second for delivery callback
-        producer.flush()
+
+        # Ensure the message is sent by polling and flushing
+        producer.poll(1)  # Non-blocking poll to trigger delivery callbacks
+        producer.flush(timeout=10)  # Wait up to 10 seconds for message delivery
+
         logger.info("***----KAFKA SENT---****")
-    
+        return {"status": "success", "message": "Message sent to Kafka"}
+
     except KafkaException as ke:
         logger.error(f"Kafka error: {ke.args}")
+        return {"status": "failed", "reason": str(ke.args)}
+
     except Exception as e:
         logger.error(f"Failed to send message to Kafka: {e}")
+        return {"status": "failed", "reason": str(e)}
 
+def delivery_report(err, msg, hl7_request_id):
+    """Delivery callback to handle message success or failure."""
+    if err is not None:
+        logger.error(f"Message delivery failed for request {hl7_request_id}: {err}")
+    else:
+        logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}")
 
 
 @shared_task
