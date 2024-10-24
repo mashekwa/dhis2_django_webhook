@@ -10,6 +10,7 @@ from dhis2 import Api
 import logging
 from celery.utils.log import get_logger
 from confluent_kafka import Producer, KafkaException
+from confluent_kafka.admin import AdminClient, NewTopic
 from django.db import transaction
 from django.conf import settings
 import uuid
@@ -29,13 +30,34 @@ KAFKA_CONFIG = {
     "sasl.username": config("KAFKA_USERNAME"),
     "sasl.password": config("KAFKA_PASSWORD"),
     "group.id": config("KAFKA_GROUP_ID"),
-    'socket.timeout.ms': 15000,  # Increase socket timeout
-    'message.timeout.ms': 10000,  # Timeout for producing a message
-    'retries': 3,  # Retry on failure
+    'socket.timeout.ms': 30000,  # Increase to 30 seconds
+    'message.timeout.ms': 30000,  # Increase to 30 seconds
+    'retries': 5,  # Retry sending the message
     'debug': 'all',
     'client.id': 'znphi-producer',
     'acks': 'all',  # Ensure all replicas acknowledge
 }
+
+def create_kafka_topic(topic_name, num_partitions=1, replication_factor=1):
+    """Create a Kafka topic if it doesn't exist."""
+    admin_client = AdminClient(KAFKA_CONFIG)
+
+    # Check if the topic already exists
+    topic_metadata = admin_client.list_topics(timeout=10)
+    if topic_name in topic_metadata.topics:
+        logger.info(f"Topic '{topic_name}' already exists.")
+        return {"status": "exists", "message": f"Topic '{topic_name}' already exists."}
+
+    # Create a new topic with the specified configuration
+    new_topic = NewTopic(topic=topic_name, num_partitions=num_partitions, replication_factor=replication_factor)
+    try:
+        # Asynchronous topic creation
+        admin_client.create_topics([new_topic])
+        logger.info(f"Topic '{topic_name}' created successfully.")
+        return {"status": "success", "message": f"Topic '{topic_name}' created successfully."}
+    except Exception as e:
+        logger.error(f"Failed to create topic '{topic_name}': {e}")
+        return {"status": "failed", "reason": str(e)}
 
 # Initialize Kafka producer with the configuration, configs in settings .py. and .env file
 producer = Producer(KAFKA_CONFIG)
@@ -220,12 +242,17 @@ def send_kafka_message(self, hl7_request_id):
     """
     logger.info("*******----SEND KAFKA MSG----*****")
     logger.info(f"Kafka Configuration: {KAFKA_CONFIG}")
+    logger.info(f"\n")
+    topic = 'eidsr-orders'
 
     try:
+        # Ensure topic exists (or create if needed)
+        create_kafka_topic(topic)
+
         # Fetch HL7 message from the database
         hl7_request = Hl7LabRequest.objects.get(id=hl7_request_id)
         hl7_msg = hl7_request.message_body.encode('utf-8')
-        topic = 'eidsr-orders'
+        
 
         logger.info(f"Sending message to Kafka: \n{hl7_msg}")
 
@@ -246,7 +273,7 @@ def send_kafka_message(self, hl7_request_id):
 
         # Ensure the message is delivered
         producer.poll(1)  # Non-blocking poll to trigger delivery callbacks
-        producer.flush(timeout=10)  # Wait up to 10 seconds for delivery
+        producer.flush(timeout=30)  # Wait up to 10 seconds for delivery
 
         logger.info("***----KAFKA SENT---****")
         return {"status": "success", "message": "Message sent to Kafka"}
