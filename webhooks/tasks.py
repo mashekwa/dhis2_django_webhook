@@ -149,8 +149,9 @@ def delivery_report(err, msg, hl7_request_id):
 def send_kafka_message(self, hl7_request_id):
     """Send an HL7 message to Kafka asynchronously and return status."""
     logger.info(f"*******----SEND KAFKA MSG----*****")
+    logger.info(f"****** \n{KAFKA_CONFIG} \n*******")
     hl7_request = Hl7LabRequest.objects.get(id=hl7_request_id)
-    logger.info(f"Sending message to Kafka: {hl7_request.message_body}")
+    logger.info(f"Sending message to Kafka: \n{hl7_request.message_body}")
     try:
         # Verify Kafka connection by fetching metadata
         metadata = producer.list_topics(timeout=10)
