@@ -235,8 +235,8 @@ def transform_request_to_hl7(event_id):
                 logger.info(f"HL7 Message updated for WebhookEvent ID {event_id} |NMC_ORDER_ID: {webhook_event.nmc_order_id} ")
 
             logger.info(f"HL7 Message processing complete! ")
-            # logger.info(f"{event.message_body}")
-            send_kafka_message(event.id)
+            logger.info(f"{event.id}")
+            #send_kafka_message(event.id)
         else:
             logger.info(f"WebhookEvent ID {event_id} has not HMIS CODE")        
 
