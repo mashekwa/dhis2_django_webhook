@@ -144,8 +144,9 @@ def delivery_report(err, msg, hl7_request_id):
     else:
         logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}")
 
+
 @shared_task(bind=True)  # Bind=True allows access to 'self' for task info
-def send_kafka_message(hl7_request_id):
+def send_kafka_message(self, hl7_request_id):
     """Send an HL7 message to Kafka asynchronously and return status."""
     logger.info(f"*******----SEND KAFKA MSG----*****")
     hl7_request = Hl7LabRequest.objects.get(id=hl7_request_id)
@@ -404,8 +405,3 @@ def process_webhook_data(json_data):
     except Exception as e:
         # Log errors and handle exceptions gracefully
         print(f"Error processing webhook data: {str(e)}")
-
-
-
-
-
