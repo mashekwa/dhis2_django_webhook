@@ -142,6 +142,7 @@ def get_real_speciment(LAB_SPEC_TYPE):
 @shared_task(bind=True)  # Bind=True allows access to 'self' for task info
 def send_kafka_message(self, hl7_msg, hl7_request_id):
     """Send an HL7 message to Kafka asynchronously and return status."""
+    logger.info(f"Sending message to Kafka: {hl7_msg}")
     try:
         # Verify Kafka connection by fetching metadata
         metadata = producer.list_topics(timeout=10)
@@ -150,8 +151,8 @@ def send_kafka_message(self, hl7_msg, hl7_request_id):
             return {"status": "failed", "reason": "Topic not found"}
 
         logger.info(f"Kafka connection successful. Available topics: {metadata.topics.keys()}")
+        
         logger.info(f"Sending message to Kafka: {hl7_msg}")
-
         # Produce the message to the Kafka topic "eidsr-orders"
         producer.produce(
             "eidsr-orders",
@@ -231,6 +232,7 @@ def transform_request_to_hl7(event_id):
                 logger.info(f"HL7 Message updated for WebhookEvent ID {event_id} |NMC_ORDER_ID: {webhook_event.nmc_order_id} ")
 
             logger.info(f"HL7 Message processing complete! ")
+            logger.info(f"{event.message_body}")
             send_kafka_message(event.message_body, event.id)
         else:
             logger.info(f"WebhookEvent ID {event_id} has not HMIS CODE")        
