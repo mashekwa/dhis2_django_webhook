@@ -40,8 +40,10 @@ services:
             - POSTGRES_PASSWORD=postgres
         volumes:
             - pgdata:/var/lib/postgresql/data/
+
     redis:
         image: "redis:alpine"
+
     pgadmin:
         image: dpage/pgadmin4
         container_name: pgadmin4
@@ -52,21 +54,16 @@ services:
           PGADMIN_DEFAULT_EMAIL: admin@mail.com
           PGADMIN_DEFAULT_PASSWORD: admin
         volumes:
-          - pgadmin-data:/var/lib/pgadmin
-    
+          - pgadmin-data:/var/lib/pgadmin    
+
     flower:
-        image: mher/flower
-        container_name: flower
-        command: flower --port=5555 --broker=redis://redis:6379/0
+        image: mher/flower:0.9.7
+        command: ['flower', '--broker=redis://redis:6379', '--port=5555']
         ports:
             - "5555:5555"
-        environment:
-            - CELERY_BROKER=redis://redis:6379/0
-            - CELERY_BACKEND=redis://redis:6379/0
         depends_on:
             - redis
-            - celery
-            - django
+
     
     kafka_consumer:
         build:
@@ -79,3 +76,4 @@ services:
 volumes:
     pgdata:
     pgadmin-data:
+    flower:

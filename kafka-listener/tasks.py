@@ -1,7 +1,6 @@
 from celery_app import celery  # Import from celery_app.py
 from celery import shared_task
 #from .utils import get_data, post_data_api, normalize_to_short_date, util_lists_to_dict
-from utils import send_telegram_message
 import logging
 import hl7
 import csv
