@@ -53,6 +53,28 @@ services:
           PGADMIN_DEFAULT_PASSWORD: admin
         volumes:
           - pgadmin-data:/var/lib/pgadmin
+    
+    flower:
+        image: mher/flower
+        container_name: flower
+        command: flower --port=5555 --broker=redis://redis:6379/0
+        ports:
+            - "5555:5555"
+        environment:
+            - CELERY_BROKER=redis://redis:6379/0
+            - CELERY_BACKEND=redis://redis:6379/0
+        depends_on:
+            - redis
+            - celery
+            - django
+    
+    kafka_consumer:
+        build:
+            context: ./kafka-listener  # Build Kafka consumer from the `app` folder
+        container_name: kafka_consumer
+        command: python kafka_listener.py
+        depends_on:
+            - celery
         
 volumes:
     pgdata:

@@ -1,0 +1,13 @@
+disease,icd_10_code,pathogen_code
+COVID-19,U04.9,DU071_COVID19
+Cholera,A00.9,DA000_CHOLERA
+Typhoid Fever,A01.0,DA010_TYPHOID
+Neonatal Tetanus,A33,DA330_NNT
+Measles,B05.9,DB050_MEASLES
+Plague,A20.9,DA200_PLAGUE
+Monkeypox,B04,DB040_MONKEYPOX
+Acute Flaccid Paralysis,A80.9,DA850_AFP
+Bacterial Meningitis,G00.9,DG009_BACTMENING
+Zika Fever,A92.8,DA928_ZIKA
+Anthrax,A22.9,DA034_ANTHRAX
+Acute Viral Haemorrhagic Fever,A99,DA910_VHF

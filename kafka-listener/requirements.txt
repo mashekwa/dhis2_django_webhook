@@ -1,0 +1,7 @@
+confluent-kafka
+celery
+redis
+hl7
+dhis2.py
+pandas
+requests

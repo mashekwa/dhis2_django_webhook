@@ -1,0 +1,44 @@
+﻿disease,disa_result,dhis_code
+COVID-19,Detected,LAB_TST_RES_POSITIVE
+COVID-19,Not Detected,LAB_TST_RES_NEGATIVE
+COVID-19,Inconclusive,LAB_TST_RES_INDETERMINATE
+COVID-19,Error,ERROR
+COVID-19,Repeat Test,REPEAT
+Anthrax,Bacillus anthracis,LAB_TST_RES_POSITIVE
+Anthrax,NO BACILLUS ANTHRACIS ISOLATED,LAB_TST_RES_NEGATIVE
+Anthrax,NO ANTHRACIS ISOLATED,LAB_TST_RES_NEGATIVE
+Bacterial Meningitis,Neisseria meningitidis,LAB_TST_RES_POSITIVE
+Bacterial Meningitis,Elizabethkingia meningoseptica,LAB_TST_RES_NEGATIVE
+Cholera,Vibrio cholera 01 Inaba,LAB_TST_RES_POSITIVE
+Cholera,Vibrio cholera 01 Ogawa,LAB_TST_RES_POSITIVE
+Cholera,Vibrio cholerae,LAB_TST_RES_POSITIVE
+Cholera,Vibrio cholerae O1,LAB_TST_RES_POSITIVE
+Cholera,Vibrio cholerae O1 serotype 01,LAB_TST_RES_POSITIVE
+Cholera,Vibrio cholerae O1 serotype Og,LAB_TST_RES_POSITIVE
+Cholera,Vibrio cholerae was NOT isolat,LAB_TST_RES_NEGATIVE
+Cholera,Cholera was not isolated,LAB_TST_RES_NEGATIVE
+Cholera,Vibrio cholerae non O1,LAB_TST_RES_NEGATIVE
+Escherichia Coli,E.coli 0104:H4,LAB_TST_RES_POSITIVE
+Escherichia Coli,E.coli 0157:H7,LAB_TST_RES_POSITIVE
+Escherichia Coli,Enteropathogenic E coli,LAB_TST_RES_POSITIVE
+Escherichia Coli,Escherichia coli,LAB_TST_RES_POSITIVE
+Escherichia Coli,gram negative bacilli suggestive of E. Coli,LAB_TST_RES_NEGATIVE
+Heaptitis A,Reactive,LAB_TST_RES_POSITIVE
+Heaptitis A,Positive,LAB_TST_RES_POSITIVE
+Heaptitis A,Negative,LAB_TST_RES_NEGATIVE
+Heaptitis A,Non Reactive,LAB_TST_RES_NEGATIVE
+Heaptitis A,Insufficient for further tests,LAB_TST_RES_INDETERMINATE
+Leprosy,Absent,LAB_TST_RES_NEGATIVE
+Leprosy,Not Seen,LAB_TST_RES_NEGATIVE
+Leprosy,Present,LAB_TST_RES_POSITIVE
+Leprosy,Seen,LAB_TST_RES_POSITIVE
+Rubella,Indeterminate,LAB_TST_RES_INDETERMINATE
+Shigellosis,"SHIG, Shigella boydii",LAB_TST_RES_POSITIVE
+Shigellosis,Shigella flexneri,LAB_TST_RES_POSITIVE
+Shigellosis,Shigella sonnei,LAB_TST_RES_POSITIVE
+Shigellosis,Shigella species,LAB_TST_RES_POSITIVE
+Shigellosis,No Salmonella or Shigella spec,LAB_TST_RES_NEGATIVE
+Shigellosis,No Shigella isolated,LAB_TST_RES_NEGATIVE
+Shigellosis,Salmonella and Shigella NOT is,LAB_TST_RES_NEGATIVE
+Typhoid Fever,Salmonella typhi,LAB_TST_RES_POSITIVE
+Typhoid Fever,Gram-negative bacterium,LAB_TST_RES_NEGATIVE

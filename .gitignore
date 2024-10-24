@@ -23,6 +23,8 @@ media
 # C extensions
 *.so
 
+commands.md
+
 # Distribution / packaging
 .Python
 build/

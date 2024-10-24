@@ -254,7 +254,7 @@ def send_kafka_message(self, hl7_request_id):
         hl7_msg = hl7_request.message_body.encode('utf-8')
         
 
-        logger.info(f"Sending message to Kafka: \n{hl7_msg}")
+        logger.info(f"Sending message to Kafka: \n{hl7_request.message_body}")
 
         # Verify Kafka broker connectivity
         metadata = producer.list_topics(timeout=10)
