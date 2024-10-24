@@ -137,12 +137,19 @@ def get_real_speciment(LAB_SPEC_TYPE):
 #         logger.error(f"Kafka error: {ke.args}")
 #     except Exception as e:
 #         logger.error(f"Failed to send message to Kafka: {e}")
-
+def delivery_report(err, msg, hl7_request_id):
+    """Delivery callback to handle message success or failure."""
+    if err is not None:
+        logger.error(f"Message delivery failed for request {hl7_request_id}: {err}")
+    else:
+        logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}")
 
 @shared_task(bind=True)  # Bind=True allows access to 'self' for task info
-def send_kafka_message(self, hl7_msg, hl7_request_id):
+def send_kafka_message(hl7_request_id):
     """Send an HL7 message to Kafka asynchronously and return status."""
-    logger.info(f"Sending message to Kafka: {hl7_msg}")
+    logger.info(f"*******----SEND KAFKA MSG----*****")
+    hl7_request = Hl7LabRequest.objects.get(id=hl7_request_id)
+    logger.info(f"Sending message to Kafka: {hl7_request.message_body}")
     try:
         # Verify Kafka connection by fetching metadata
         metadata = producer.list_topics(timeout=10)
@@ -152,11 +159,11 @@ def send_kafka_message(self, hl7_msg, hl7_request_id):
 
         logger.info(f"Kafka connection successful. Available topics: {metadata.topics.keys()}")
         
-        logger.info(f"Sending message to Kafka: {hl7_msg}")
+        logger.info(f"Sending message to Kafka: {hl7_request.message_body}")
         # Produce the message to the Kafka topic "eidsr-orders"
         producer.produce(
             "eidsr-orders",
-            value=hl7_msg,
+            value=hl7_request.message_body,
             callback=lambda err, msg: delivery_report(err, msg, hl7_request_id)
         )
 
@@ -175,12 +182,7 @@ def send_kafka_message(self, hl7_msg, hl7_request_id):
         logger.error(f"Failed to send message to Kafka: {e}")
         return {"status": "failed", "reason": str(e)}
 
-def delivery_report(err, msg, hl7_request_id):
-    """Delivery callback to handle message success or failure."""
-    if err is not None:
-        logger.error(f"Message delivery failed for request {hl7_request_id}: {err}")
-    else:
-        logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}")
+
 
 
 @shared_task
@@ -232,8 +234,8 @@ def transform_request_to_hl7(event_id):
                 logger.info(f"HL7 Message updated for WebhookEvent ID {event_id} |NMC_ORDER_ID: {webhook_event.nmc_order_id} ")
 
             logger.info(f"HL7 Message processing complete! ")
-            logger.info(f"{event.message_body}")
-            send_kafka_message(event.message_body, event.id)
+            # logger.info(f"{event.message_body}")
+            send_kafka_message(event.id)
         else:
             logger.info(f"WebhookEvent ID {event_id} has not HMIS CODE")        
 
