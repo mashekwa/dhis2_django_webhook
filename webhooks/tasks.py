@@ -252,8 +252,7 @@ def get_event_data(tei):
     params = {
         'trackedEntity': tei,
         'fields': 'event,status, trackedEntity',
-    }
-    
+    }    
 
     try:
         r = api.get('tracker/events', params=params)
